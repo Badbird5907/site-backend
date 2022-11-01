@@ -14,9 +14,11 @@ public class WebConfig implements WebMvcConfigurer {
             registry.addResourceHandler("/static/**")
                     .addResourceLocations("/static/");
         }
+        /* // Deployed on cloudflare pages
         if (!registry.hasMappingForPattern("/react/**")) {
             registry.addResourceHandler("/react/**")
                     .addResourceLocations("/react/");
         }
+         */
     }
 }
