@@ -54,9 +54,9 @@ public class BackendApplication {
             Location location = new Location();
             location.setGithubReference(GithubReference.fromURL("https://github.com/Badbird5907/blog/blob/master/content/test/Test.md"));
             //Blog blog = new Blog(new UUID(0,0).toString(), "Test Blog", "This is a test blog", "Badbird5907", System.currentTimeMillis(), null, "https://cdn.badbird.dev/assets/profile.gif", Arrays.asList("Hello", "123", "ABC"), false, location);
-            Blog blog = new Blog("Test Blog", "This is a test blog", location, userRepository.findByUsername("Test").get());
-            blog.setId(new UUID(0,0).toString());
-            blogRepository.save(blog);
+            //Blog blog = new Blog("Test Blog", "This is a test blog", location, userRepository.findByUsername("Test").get());
+            //blog.setId(new UUID(0,0).toString());
+            //blogRepository.save(blog);
             System.out.println("Saved blog");
             for (ERole value : ERole.values()) {
                 Role role = new Role(value);
