@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Data
 public class GithubReference {
     private static final String GITHUB_RAW_BASE = "https://raw.githubusercontent.com/%USER%/%REPO%/%BRANCH%/%PATH%";
-    private static final String GITHUB_BASE = "https://github.com/%USER%/%REPO%/%BRANCH%/%PATH%";
+    private static final String GITHUB_BASE = "https://github.com/%USER%/%REPO%/blob/%BRANCH%/%PATH%";
     private String owner;
     private String repo;
     private String branch;

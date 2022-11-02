@@ -3,6 +3,7 @@ package dev.badbird.backend.controller;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import dev.badbird.backend.model.Blog;
+import dev.badbird.backend.object.Location;
 import dev.badbird.backend.repositories.BlogRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -39,9 +40,21 @@ public class BlogController {
             return ResponseEntity.status(404)
                     .body(BLOG_NOT_FOUND);
         }
-        JsonObject data = getBlogMeta(optionalBlog);
-        data.addProperty("content", optionalBlog.get().getContent());
-        return ResponseEntity.ok(gson.toJson(data));
+        try {
+            JsonObject data = getBlogMeta(optionalBlog);
+            data.addProperty("content", optionalBlog.get().getContent());
+            return ResponseEntity.ok(gson.toJson(data));
+        } catch (Exception e) {
+            String githubURL;
+            Location location = optionalBlog.get().getLocation();
+            if (location.getGithubReference() != null) {
+                githubURL = location.getGithubReference().getEffectiveURL(false);
+                return ResponseEntity.status(500)
+                        .body("{\"success\": false, \"error\": \"Error getting blog content\", \"code\": 500, \"githubURL\": \"" + githubURL + "\"}");
+            }
+            return ResponseEntity.status(500)
+                    .body("{\"success\": false, \"error\": \"Internal server error\", \"code\": 500}");
+        }
     }
 
     public JsonObject getBlogMeta(Optional<Blog> optionalBlog) {
