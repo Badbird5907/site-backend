@@ -195,14 +195,26 @@ public class BlogController {
         JsonObject jsonObject = gson.toJsonTree(blog)
                 .getAsJsonObject();
         jsonObject.addProperty("success", true);
-        Optional<User> author = userRepository.findById(blog.getAuthorId());
-        if (author.isPresent()) {
-            jsonObject.addProperty("author", author.get().getUsername());
-            jsonObject.addProperty("authorImg", author.get().getImageUrl());
+        /*
+        if (blog.getAuthorId() != null && !blog.getAuthorId().isEmpty()) { // TODO: Cache authors/users so we don't need to hit the db multiple times per request
+            Optional<User> author = userRepository.findById(blog.getAuthorId());
+            if (author.isPresent()) {
+                jsonObject.addProperty("author", author.get().getUsername());
+                jsonObject.addProperty("authorImg", author.get().getImageUrl());
+            } else {
+                jsonObject.addProperty("author", "Deleted User");
+                jsonObject.addProperty("authorImg", User.DEFAULT_PROFILE);
+            }
+        } else if (blog.hasCustomAuthor()) {
+            jsonObject.addProperty("author", blog.getCustomAuthor());
+            jsonObject.addProperty("authorImg", blog.getCustomAuthorImage());
         } else {
             jsonObject.addProperty("author", "Deleted User");
             jsonObject.addProperty("authorImg", User.DEFAULT_PROFILE);
         }
+         */
+        jsonObject.addProperty("author", blog.getAuthorName(userRepository));
+        jsonObject.addProperty("authorImg", blog.getAuthorImage(userRepository));
         jsonObject.addProperty("safeName", blog.getURLSafeTitle());
         jsonObject.remove("cached");
         return jsonObject;

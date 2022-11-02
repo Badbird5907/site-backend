@@ -1,6 +1,7 @@
 package dev.badbird.backend.model;
 
 import dev.badbird.backend.object.Location;
+import dev.badbird.backend.repositories.UserRepository;
 import dev.badbird.backend.util.markdown.TempMarkWrapper;
 import lombok.Getter;
 import lombok.Setter;
@@ -11,6 +12,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Getter
@@ -28,16 +30,27 @@ public class Blog {
     private String image; // Image URL of the blog
     private List<String> tags; // Tags of the blog (UUID ids)
 
+    private String customAuthor = null, customAuthorImage = null; // Custom author name and image
+
     private Location location; // Location of the blog
 
-    public Blog(String title, String description, Location location, User author) {
+    private Blog(String title, String description, Location location) {
         this.id = UUID.randomUUID().toString();
         this.title = title;
         this.description = description;
-        this.timestamp = System.currentTimeMillis();
         this.location = location;
+    }
+    public Blog(String title, String description, Location location, User author) {
+        this(title, description, location);
         this.authorId = author.getId();
     }
+    public Blog(String title, String description, Location location, String customAuthor, String customAuthorImage) {
+        this(title, description, location);
+        this.customAuthor = customAuthor;
+        this.customAuthorImage = customAuthorImage;
+        this.authorId = null;
+    }
+
 
     public Blog() {
     }
@@ -57,4 +70,22 @@ public class Blog {
     public void setTitle(String title) {
         this.title = title;
     }
+
+    public boolean hasCustomAuthor() {
+        return customAuthor != null && !customAuthor.isEmpty();
+    }
+
+    public String getAuthorName(UserRepository userRepository) {
+        if (hasCustomAuthor()) return customAuthor;
+        Optional<User> user = userRepository.findById(authorId);
+        if (user.isPresent()) return user.get().getUsername();
+        return "Unknown";
+    }
+    public String getAuthorImage(UserRepository userRepository) {
+        if (hasCustomAuthor() && customAuthorImage != null && !customAuthorImage.isEmpty()) return customAuthorImage;
+        Optional<User> user = userRepository.findById(authorId);
+        if (user.isPresent()) return user.get().getImageUrl();
+        return User.DEFAULT_PROFILE;
+    }
+
 }
