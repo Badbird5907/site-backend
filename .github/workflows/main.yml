@@ -1,0 +1,19 @@
+name: "Deploy"
+on: [push]
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: [self-hosted, Site]
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - name: Command Output
+        # You may pin to the exact commit or the version.
+        # uses: mathiasvr/command-output@8dbf451add3db114df0114aa5e21a1efef8c5015
+        uses: mathiasvr/command-output@v1.1.0
+        with:
+          # Command to run
+          run: sudo systemctl restart site-backend
+          # Shell used to run command
+          shell: bash # optional, default is bash
