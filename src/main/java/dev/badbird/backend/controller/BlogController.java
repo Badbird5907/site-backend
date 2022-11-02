@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-@RequestMapping("/api/blog")
+@RequestMapping("/blog")
 @RestController
 @CrossOrigin(origins = "*")
 public class BlogController {
@@ -109,6 +109,8 @@ public class BlogController {
         if (size > 200) {
             return ResponseEntity.badRequest().body("{\"success\": false, \"error\": \"Size too large\", \"max\": 200}");
         }
+        if (order.isEmpty()) order = "asc";
+
         String realOrder = order.toLowerCase();
         if (!realOrder.equals("asc") && !realOrder.equals("desc")) {
             return ResponseEntity.badRequest().body("{\"success\": false, \"error\": \"Invalid order, valid: asc and desc\"}");
@@ -130,30 +132,65 @@ public class BlogController {
             for (String tag : tagsArray) {
                 tag = URLDecoder.decode(tag, StandardCharsets.UTF_8);
                 Optional<Tag> optionalTag = tagsRepository.findByName(tag);
-                optionalTag.ifPresent(t -> {
-                    tagsList.add(t.getId());
-                });
+                optionalTag.ifPresent(t -> tagsList.add(t.getId()));
             }
             query.addCriteria(Criteria.where("tags").all(tagsList));
         }
         if (!author.isEmpty()) {
             author = URLDecoder.decode(author, StandardCharsets.UTF_8);
-            query.addCriteria(Criteria.where("author").is(author));
+            query.addCriteria(Criteria.where("author").is(author)
+                    .orOperator(
+                            Criteria.where("authorId").is(author)
+                    ));
         }
         query.with(p);
-        blogs = mongoTemplate.find(query, Blog.class);
+        blogs = mongoTemplate.find(query, Blog.class, "blogs");
+        JsonObject jsonObject = new JsonObject();
         List<JsonObject> blogList = new ArrayList<>();
         for (Blog blog : blogs) {
             blogList.add(getBlogMeta(Optional.of(blog)));
         }
-        return ResponseEntity.ok(gson.toJson(blogList));
+        Query countQuery = new Query();
+        if (!search.isEmpty()) {
+            String str = String.format(CONTAINS_PATTERN, Utils.escapeRegex(search));
+            // either title or description contains the search string
+            countQuery.addCriteria(Criteria.where("title").regex(str, "i") // TODO down here too
+                    .orOperator(Criteria.where("description").regex(str, "i")));
+        }
+        if (!tags.isEmpty()) {
+            String[] tagsArray = tags.split(",");
+            List<String> tagsList = new ArrayList<>(); // a list of tag ids
+            for (String tag : tagsArray) {
+                tag = URLDecoder.decode(tag, StandardCharsets.UTF_8);
+                Optional<Tag> optionalTag = tagsRepository.findByName(tag);
+                optionalTag.ifPresent(t -> tagsList.add(t.getId()));
+            }
+            countQuery.addCriteria(Criteria.where("tags").all(tagsList));
+        }
+        if (!author.isEmpty()) {
+            author = URLDecoder.decode(author, StandardCharsets.UTF_8);
+            countQuery.addCriteria(Criteria.where("author").is(author));
+        }
+
+        int count = (int) mongoTemplate.count(countQuery, Blog.class, "blogs");
+        jsonObject.add("blogs", gson.toJsonTree(blogList));
+        jsonObject.addProperty("success", true);
+        jsonObject.addProperty("page", page);
+        jsonObject.addProperty("size", size);
+        jsonObject.addProperty("total", count);
+        int totalPages = (int) Math.ceil((double) count / size);
+        jsonObject.addProperty("totalPages", totalPages);
+
+        return ResponseEntity.ok(gson.toJson(jsonObject));
     }
 
     public JsonObject getBlogMeta(Optional<Blog> optionalBlog) {
         return getBlogMeta(optionalBlog.get());
     }
+
     @Autowired
     private UserRepository userRepository;
+
     public JsonObject getBlogMeta(Blog blog) {
         JsonObject jsonObject = gson.toJsonTree(blog)
                 .getAsJsonObject();
@@ -166,6 +203,7 @@ public class BlogController {
             jsonObject.addProperty("author", "Deleted User");
             jsonObject.addProperty("authorImg", User.DEFAULT_PROFILE);
         }
+        jsonObject.addProperty("safeName", blog.getURLSafeTitle());
         jsonObject.remove("cached");
         return jsonObject;
     }
