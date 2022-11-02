@@ -14,6 +14,7 @@ import org.springframework.context.annotation.Bean;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.Arrays;
 import java.util.UUID;
 
 @SpringBootApplication
@@ -42,7 +43,7 @@ public class BackendApplication {
         return args -> {
             Location location = new Location();
             location.setGithubReference(GithubReference.fromURL("https://github.com/Badbird5907/blog/blob/master/content/test/Test.md"));
-            Blog blog = new Blog(new UUID(0,0).toString(), "Test Blog", "This is a test blog", "Badbird5907", System.currentTimeMillis(), null, "https://cdn.badbird.dev/assets/profile.gif", false, location);
+            Blog blog = new Blog(new UUID(0,0).toString(), "Test Blog", "This is a test blog", "Badbird5907", System.currentTimeMillis(), null, "https://cdn.badbird.dev/assets/profile.gif", Arrays.asList("Hello", "123", "ABC"), false, location);
             blogRepository.save(blog);
             System.out.println("Saved blog");
         };
