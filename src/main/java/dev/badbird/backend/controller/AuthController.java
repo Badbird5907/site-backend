@@ -9,10 +9,7 @@ import dev.badbird.backend.repositories.RoleRepository;
 import dev.badbird.backend.repositories.UserRepository;
 import dev.badbird.backend.security.UserDetailsImpl;
 import dev.badbird.backend.security.jwt.JwtUtils;
-import lombok.Data;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -192,7 +189,9 @@ public class AuthController {
 
     @Getter
     @Setter
-    public class ChangePasswordRequest {
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ChangePasswordRequest {
         @NotBlank
         private String oldPassword;
         @NotBlank
