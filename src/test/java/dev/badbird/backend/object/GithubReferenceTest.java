@@ -25,12 +25,13 @@ class GithubReferenceTest {
 
     @Test
     void fromURL() {
-        String url = "https://github.com/Badbird5907/blog/master/content/hi/hi.md";
+        String url = "https://github.com/Badbird5907/blog/blob/master/content/test/Test.md";
         GithubReference ref = GithubReference.fromURL(url);
         assertEquals("Badbird5907", ref.getOwner());
+        assertEquals("blog", ref.getRepo());
         assertEquals("master", ref.getBranch());
-        assertEquals("content/hi", ref.getDir());
-        assertEquals("hi.md", ref.getFile());
+        assertEquals("content/test", ref.getDir());
+        assertEquals("Test.md", ref.getFile());
     }
 
 
