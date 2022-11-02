@@ -21,18 +21,22 @@ repositories {
 }
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
-    //implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation ("org.springframework.boot:spring-boot-starter-security"){
+        // exclude spring security crypto
+        //Gradle: org.springframework.security:spring-security-crypto:5.7.42
+        exclude group: 'org.springframework.security', module: 'spring-security-crypto'
+    }
+    implementation 'org.springframework.security:spring-security-crypto'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework:spring-webmvc'
     annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'org.springframework.security:spring-security-test'
-
     implementation 'com.google.guava:guava:31.1-jre'
     implementation 'com.google.code.gson:gson:2.10'
-
+    implementation 'io.jsonwebtoken:jjwt:0.9.1'
+    implementation 'javax.validation:validation-api:2.0.1.Final'
+    implementation 'commons-validator:commons-validator:1.7'
     //implementation 'dev.badbird:TempMark:0.0.1'
     implementation files("libs/TempMark-0.0.1.jar")
 

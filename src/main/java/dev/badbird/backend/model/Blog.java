@@ -2,13 +2,12 @@ package dev.badbird.backend.model;
 
 import dev.badbird.backend.object.Location;
 import dev.badbird.backend.util.markdown.TempMarkWrapper;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @Getter
@@ -28,7 +27,6 @@ public class Blog {
     private String image; // Image of the blog
     private String authorImage; // Image of the author
     private List<String> tags; // Tags of the blog
-
     private boolean cached = true;
 
     private Location location; // Location of the blog
@@ -38,5 +36,14 @@ public class Blog {
     }
     public String getWebContents() {
         return location.getContents();
+    }
+
+    @SneakyThrows
+    public String getURLSafeTitle() {
+        return URLEncoder.encode(title, StandardCharsets.UTF_8.toString());
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
     }
 }
