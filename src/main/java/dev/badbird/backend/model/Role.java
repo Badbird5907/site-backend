@@ -5,21 +5,22 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document(collection = "roles")
 public class Role {
-  @Id
-  private ERole name;
+    @Id
+    private ERole name;
 
-  public Role() {
+    public Role() {
 
-  }
+    }
 
-  public Role(ERole name) {
-    this.name = name;
-  }
-  public ERole getName() {
-    return name;
-  }
+    public Role(ERole name) {
+        this.name = name;
+    }
 
-  public void setName(ERole name) {
-    this.name = name;
-  }
+    public ERole getName() {
+        return name;
+    }
+
+    public void setName(ERole name) {
+        this.name = name;
+    }
 }

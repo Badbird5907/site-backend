@@ -2,17 +2,32 @@ package dev.badbird.backend.controller;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.mongodb.client.MongoClient;
 import dev.badbird.backend.model.Blog;
+import dev.badbird.backend.model.Tag;
+import dev.badbird.backend.model.User;
 import dev.badbird.backend.object.Location;
 import dev.badbird.backend.repositories.BlogRepository;
+import dev.badbird.backend.repositories.TagsRepository;
+import dev.badbird.backend.repositories.UserRepository;
+import dev.badbird.backend.util.Utils;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -71,11 +86,86 @@ public class BlogController {
         }
     }
 
+    @Autowired
+    private MongoClient mongoClient;
+    @Autowired
+    private TagsRepository tagsRepository;
+    private static final String CONTAINS_PATTERN = ".*%s.*";
+
+    @Value("${spring.data.mongodb.database}")
+    private String databaseName;
+
+    @SneakyThrows
+    @GetMapping("/list")
+    public ResponseEntity<?> getBlogList(
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "15") int size,
+            @RequestParam(value = "order", defaultValue = "asc") String order,
+            @SuppressWarnings("unused") @RequestParam(value = "sort", defaultValue = "timestamp") String sort, // Timestamp is the only valid option for now
+            @RequestParam(value = "search", defaultValue = "") String search,
+            @RequestParam(value = "tags", defaultValue = "") String tags,
+            @RequestParam(value = "author", defaultValue = "") String author
+    ) {
+        if (size > 200) {
+            return ResponseEntity.badRequest().body("{\"success\": false, \"error\": \"Size too large\", \"max\": 200}");
+        }
+        String realOrder = order.toLowerCase();
+        if (!realOrder.equals("asc") && !realOrder.equals("desc")) {
+            return ResponseEntity.badRequest().body("{\"success\": false, \"error\": \"Invalid order, valid: asc and desc\"}");
+        }
+        Sort.Direction direction = realOrder.equals("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Pageable p = PageRequest.of(page - 1, size, Sort.by(direction, "timestamp")); // Hardcoded timestamp for now because it's the only valid option, change later
+        List<Blog> blogs;
+        Query query = new Query();
+        MongoTemplate mongoTemplate = new MongoTemplate(mongoClient, databaseName);
+        if (!search.isEmpty()) {
+            String str = String.format(CONTAINS_PATTERN, Utils.escapeRegex(search));
+            // either title or description contains the search string
+            query.addCriteria(Criteria.where("title").regex(str, "i") // TODO not the best solution using regex
+                    .orOperator(Criteria.where("description").regex(str, "i")));
+        }
+        if (!tags.isEmpty()) {
+            String[] tagsArray = tags.split(",");
+            List<String> tagsList = new ArrayList<>(); // a list of tag ids
+            for (String tag : tagsArray) {
+                tag = URLDecoder.decode(tag, StandardCharsets.UTF_8);
+                Optional<Tag> optionalTag = tagsRepository.findByName(tag);
+                optionalTag.ifPresent(t -> {
+                    tagsList.add(t.getId());
+                });
+            }
+            query.addCriteria(Criteria.where("tags").all(tagsList));
+        }
+        if (!author.isEmpty()) {
+            author = URLDecoder.decode(author, StandardCharsets.UTF_8);
+            query.addCriteria(Criteria.where("author").is(author));
+        }
+        query.with(p);
+        blogs = mongoTemplate.find(query, Blog.class);
+        List<JsonObject> blogList = new ArrayList<>();
+        for (Blog blog : blogs) {
+            blogList.add(getBlogMeta(Optional.of(blog)));
+        }
+        return ResponseEntity.ok(gson.toJson(blogList));
+    }
+
     public JsonObject getBlogMeta(Optional<Blog> optionalBlog) {
-        Blog blog = optionalBlog.get();
+        return getBlogMeta(optionalBlog.get());
+    }
+    @Autowired
+    private UserRepository userRepository;
+    public JsonObject getBlogMeta(Blog blog) {
         JsonObject jsonObject = gson.toJsonTree(blog)
                 .getAsJsonObject();
         jsonObject.addProperty("success", true);
+        Optional<User> author = userRepository.findById(blog.getAuthorId());
+        if (author.isPresent()) {
+            jsonObject.addProperty("author", author.get().getUsername());
+            jsonObject.addProperty("authorImg", author.get().getImageUrl());
+        } else {
+            jsonObject.addProperty("author", "Deleted User");
+            jsonObject.addProperty("authorImg", User.DEFAULT_PROFILE);
+        }
         jsonObject.remove("cached");
         return jsonObject;
     }

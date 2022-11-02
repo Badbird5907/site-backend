@@ -59,13 +59,15 @@ public class AuthController {
 
     @RequestMapping("/test")
     public ResponseEntity<?> test() {
-        try {
-            String pwd =  encoder.encode("123456789");
-            User user = new User("Test", pwd);
-            user.setRoles(new HashSet<>(roleRepository.findAll()));
-            userRepository.save(user);
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (System.getProperty("dev", "false").equals("true")) {
+            try {
+                String pwd = encoder.encode("123456789");
+                User user = new User("Test", pwd);
+                user.setRoles(new HashSet<>(roleRepository.findAll()));
+                userRepository.save(user);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         return ResponseEntity.ok("Test");
     }
