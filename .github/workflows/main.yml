@@ -3,7 +3,7 @@ on: [push]
 jobs:
   deploy:
     name: Deploy
-    runs-on: [self-hosted, Site]
+    runs-on: [self-hosted]
     permissions:
       actions: read
       contents: read
