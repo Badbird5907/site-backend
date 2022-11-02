@@ -51,7 +51,6 @@ public class BackendApplication {
     public CommandLineRunner commandLineRunner(BlogRepository blogRepository, RoleRepository roleRepository
             , PasswordEncoder passwordEncoder, UserRepository userRepository) {
         return args -> {
-            if (true) return;
             Location location = new Location();
             location.setGithubReference(GithubReference.fromURL("https://github.com/Badbird5907/blog/blob/master/content/test/Test.md"));
             //Blog blog = new Blog(new UUID(0,0).toString(), "Test Blog", "This is a test blog", "Badbird5907", System.currentTimeMillis(), null, "https://cdn.badbird.dev/assets/profile.gif", Arrays.asList("Hello", "123", "ABC"), false, location);

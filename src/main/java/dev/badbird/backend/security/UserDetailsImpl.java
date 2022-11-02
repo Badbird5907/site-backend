@@ -72,6 +72,10 @@ public class UserDetailsImpl implements UserDetails {
         return true;
     }
 
+    public String getId() {
+        return id;
+    }
+
     @Override
     public boolean isEnabled() {
         return true;

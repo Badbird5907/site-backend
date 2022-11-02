@@ -41,6 +41,10 @@ dependencies {
     //implementation 'dev.badbird:TempMark:0.0.1'
     implementation files("libs/TempMark-0.0.1.jar")
 
+    // DatabindConverter
+    implementation "jakarta.xml.bind:jakarta.xml.bind-api:2.3.2"
+    implementation "org.glassfish.jaxb:jaxb-runtime:2.3.2"
+
 }
 
 tasks.named('test') {

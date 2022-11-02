@@ -61,7 +61,7 @@ public class AuthController {
     public ResponseEntity<?> test() {
         if (System.getProperty("dev", "false").equals("true")) {
             try {
-                String pwd = encoder.encode("123456789");
+                String pwd = encoder.encode("123");
                 User user = new User("Test", pwd);
                 user.setRoles(new HashSet<>(roleRepository.findAll()));
                 userRepository.save(user);
@@ -94,7 +94,9 @@ public class AuthController {
         List<String> roles = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
-        return ResponseEntity.ok(new JwtResponse(jwt,
+        return ResponseEntity.ok(new JwtResponse(
+                userDetails.getId(),
+                jwt,
                 userDetails.getUsername(),
                 roles
         ));
@@ -179,8 +181,9 @@ public class AuthController {
         private String username;
         private List<String> roles;
 
-        public JwtResponse(String token, String username,
+        public JwtResponse(String id, String token, String username,
                            List<String> roles) {
+            this.id = id;
             this.token = token;
             this.username = username;
             this.roles = roles;
