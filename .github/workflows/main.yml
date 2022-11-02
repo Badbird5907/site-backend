@@ -14,6 +14,6 @@ jobs:
         uses: mathiasvr/command-output@v1.1.0
         with:
           # Command to run
-          run: sudo systemctl restart site-backend
+          run: sudo systemctl restart site-backend && sudo systemctl status site-backend
           # Shell used to run command
           shell: bash # optional, default is bash
