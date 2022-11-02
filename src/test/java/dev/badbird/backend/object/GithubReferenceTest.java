@@ -17,6 +17,13 @@ class GithubReferenceTest {
     }
 
     @Test
+    void testDir() {
+        GithubReference ref = new GithubReference("Badbird5907", "blog", "master", "/content/hi", "hi.md");
+        String dir = ref.getFullURLForDir();
+        assertEquals("https://github.com/Badbird5907/blog/master/content/hi", dir);
+    }
+
+    @Test
     void fromURL() {
         String url = "https://github.com/Badbird5907/blog/master/content/hi/hi.md";
         GithubReference ref = GithubReference.fromURL(url);
@@ -25,4 +32,6 @@ class GithubReferenceTest {
         assertEquals("content/hi", ref.getDir());
         assertEquals("hi.md", ref.getFile());
     }
+
+
 }

@@ -11,18 +11,13 @@ public class WebUtil {
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("GET");
         connection.connect();
-        int responseCode = connection.getResponseCode();
-        if (responseCode != 200) {
-            throw new RuntimeException("HttpResponseCode: " + responseCode);
-        } else {
-            StringBuilder inline = new StringBuilder();
-            java.util.Scanner scanner = new java.util.Scanner(url.openStream());
-            while (scanner.hasNext()) {
-                inline.append(scanner.nextLine());
-            }
-            scanner.close();
-            return inline.toString();
+        StringBuilder inline = new StringBuilder();
+        java.util.Scanner scanner = new java.util.Scanner(url.openStream());
+        while (scanner.hasNext()) {
+            inline.append(scanner.nextLine()).append("\n");
         }
+        scanner.close();
+        return inline.toString().trim();
     }
 
     @SneakyThrows

@@ -9,7 +9,7 @@ public class Location {
     private String directURL;
     private GithubReference githubReference;
 
-    private Location() {
+    public Location() {
 
     }
 

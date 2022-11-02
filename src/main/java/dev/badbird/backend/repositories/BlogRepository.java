@@ -7,6 +7,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface BlogRepository extends MongoRepository<Blog, String> {
-    Optional<Blog> findById(UUID id);
+    Optional<Blog> findById(String id);
 
 }

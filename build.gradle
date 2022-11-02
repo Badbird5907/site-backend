@@ -26,13 +26,16 @@ dependencies {
     implementation 'org.springframework:spring-webmvc'
     annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
 
     implementation 'com.google.guava:guava:31.1-jre'
     implementation 'com.google.code.gson:gson:2.10'
 
-    implementation 'dev.badbird:TempMark:0.0.1'
+    //implementation 'dev.badbird:TempMark:0.0.1'
+    implementation files("libs/TempMark-0.0.1.jar")
+
 }
 
 tasks.named('test') {

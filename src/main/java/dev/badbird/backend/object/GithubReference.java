@@ -35,20 +35,38 @@ public class GithubReference {
         return getDir() + "/" + file;
     }
 
+    public String getFullURLForDir() {
+        return GITHUB_BASE
+                .replace("%USER%", owner)
+                .replace("%REPO%", repo)
+                .replace("%BRANCH%", branch)
+                .replace("%PATH%", getDir());
+    }
+
     public String getFileContents() {
         return WebUtil.getURLContents(getEffectiveURL(true));
     }
 
     public static GithubReference fromURL(String githubURL) {
         if (githubURL.contains("raw.githubusercontent.com")) {
-            githubURL = githubURL.replace("raw.githubusercontent.com", "github.com");
+            String[] split = githubURL.split("/");
+            String owner = split[3];
+            String repo = split[4];
+            String branch = split[5];
+            String dir = "";
+            for (int i = 6; i < split.length - 1; i++) {
+                dir += "/" + split[i];
+            }
+            String file = split[split.length - 1];
+            return new GithubReference(owner, repo, branch, dir, file);
         }
+        //https://github.com/Badbird5907/blog/blob/master/content/test/Test.md
         String[] split = githubURL.split("/");
         String owner = split[3];
         String repo = split[4];
-        String branch = split[5];
+        String branch = split[6];
         String dir = "";
-        for (int i = 6; i < split.length - 1; i++) {
+        for (int i = 7; i < split.length - 1; i++) {
             dir += "/" + split[i];
         }
         String file = split[split.length - 1];

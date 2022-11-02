@@ -6,16 +6,14 @@ import dev.badbird.backend.model.Blog;
 import dev.badbird.backend.repositories.BlogRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
 import java.util.UUID;
 
 @RequestMapping("/api/blog")
 @RestController
+@CrossOrigin(origins = "*")
 public class BlogController {
     private static final String BLOG_NOT_FOUND = "{\"success\": false, \"error\": \"Blog not found\", \"code\": 404}";
     @Autowired
@@ -24,9 +22,8 @@ public class BlogController {
     private Gson gson;
 
     @GetMapping("/meta/get/{id}")
-    public ResponseEntity<?> getBlogInfo(@RequestParam("id") String idStr) {
-        UUID id = UUID.fromString(idStr);
-        Optional<Blog> optionalBlog = blogRepository.findById(id);
+    public ResponseEntity<?> getBlogInfo(@PathVariable("id") String idStr) {
+        Optional<Blog> optionalBlog = blogRepository.findById(idStr);
         if (!optionalBlog.isPresent()) {
             return ResponseEntity.status(404)
                     .body(BLOG_NOT_FOUND);
@@ -34,18 +31,17 @@ public class BlogController {
         return ResponseEntity.ok(gson.toJson(getBlogMeta(optionalBlog)));
     }
 
-    @GetMapping("/content/get/{id}")
-    public ResponseEntity<?> getBlogContent(@RequestParam("id") String idStr) {
-        UUID id = UUID.fromString(idStr);
-        Optional<Blog> optionalBlog = blogRepository.findById(id);
+    @GetMapping("/content/get/{id}") // More expensive, so it's a separate endpoint
+    public ResponseEntity<?> getBlogContent(@PathVariable("id") String idStr) {
+        System.out.println("Getting blog content");
+        Optional<Blog> optionalBlog = blogRepository.findById(idStr);
         if (!optionalBlog.isPresent()) {
             return ResponseEntity.status(404)
                     .body(BLOG_NOT_FOUND);
         }
         JsonObject data = getBlogMeta(optionalBlog);
         data.addProperty("content", optionalBlog.get().getContent());
-        throw new RuntimeException("Not implemented");
-        //return ResponseEntity.ok("");
+        return ResponseEntity.ok(gson.toJson(data));
     }
 
     public JsonObject getBlogMeta(Optional<Blog> optionalBlog) {
