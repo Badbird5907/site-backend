@@ -14,4 +14,6 @@ public interface BlogRepository extends MongoRepository<Blog, String> {
     List<Blog> findByTitle(String urlEncodedTitle);
 
     Page<Blog> findAllByOrderByTimestampDesc(Pageable pageable);
+
+    Boolean existsByTitle(String title);
 }

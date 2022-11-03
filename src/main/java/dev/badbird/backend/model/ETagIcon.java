@@ -4,5 +4,6 @@ public enum ETagIcon {
     FOLDER,
     FILE,
     CODE,
-    BOOK
+    BOOK,
+    NONE
 }

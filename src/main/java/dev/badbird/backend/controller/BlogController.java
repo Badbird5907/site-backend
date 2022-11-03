@@ -5,7 +5,6 @@ import com.google.gson.JsonObject;
 import com.mongodb.client.MongoClient;
 import dev.badbird.backend.model.Blog;
 import dev.badbird.backend.model.Tag;
-import dev.badbird.backend.model.User;
 import dev.badbird.backend.object.Location;
 import dev.badbird.backend.repositories.BlogRepository;
 import dev.badbird.backend.repositories.TagsRepository;
@@ -24,12 +23,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URLDecoder;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @RequestMapping("/blog")
 @RestController
@@ -44,7 +41,7 @@ public class BlogController {
     @SneakyThrows
     @GetMapping("/meta/get/{id}")
     public ResponseEntity<?> getBlogInfo(@PathVariable("id") String idStr) {
-        idStr = URLDecoder.decode(idStr, StandardCharsets.UTF_8.toString());
+        idStr = URLDecoder.decode(idStr, StandardCharsets.UTF_8);
         Optional<Blog> optionalBlog = blogRepository.findById(idStr);
         if (optionalBlog.isEmpty()) {
             List<Blog> list = blogRepository.findByTitle(idStr);
@@ -60,9 +57,9 @@ public class BlogController {
     @SneakyThrows
     @GetMapping("/content/get/{id}") // More expensive, so it's a separate endpoint
     public ResponseEntity<?> getBlogContent(@PathVariable("id") String idStr) {
-        idStr = URLDecoder.decode(idStr, StandardCharsets.UTF_8.toString());
+        idStr = URLDecoder.decode(idStr, StandardCharsets.UTF_8);
         Optional<Blog> optionalBlog = blogRepository.findById(idStr);
-        if (optionalBlog.isEmpty()) {
+        if (optionalBlog.isEmpty()) { // TODO maybe implement a way to detect if there are blogs with the same title, if so, have the frontend use the id instead.
             List<Blog> list = blogRepository.findByTitle(idStr);
             optionalBlog = list.stream().findFirst();
             if (optionalBlog.isEmpty()) {
@@ -186,6 +183,7 @@ public class BlogController {
         return ResponseEntity.ok(gson.toJson(jsonObject));
     }
 
+
     public JsonObject getBlogMeta(Optional<Blog> optionalBlog) {
         return getBlogMeta(optionalBlog.get());
     }
@@ -197,29 +195,19 @@ public class BlogController {
         JsonObject jsonObject = gson.toJsonTree(blog)
                 .getAsJsonObject();
         jsonObject.addProperty("success", true);
-        /*
-        if (blog.getAuthorId() != null && !blog.getAuthorId().isEmpty()) { // TODO: Cache authors/users so we don't need to hit the db multiple times per request
-            Optional<User> author = userRepository.findById(blog.getAuthorId());
-            if (author.isPresent()) {
-                jsonObject.addProperty("author", author.get().getUsername());
-                jsonObject.addProperty("authorImg", author.get().getImageUrl());
-            } else {
-                jsonObject.addProperty("author", "Deleted User");
-                jsonObject.addProperty("authorImg", User.DEFAULT_PROFILE);
-            }
-        } else if (blog.hasCustomAuthor()) {
-            jsonObject.addProperty("author", blog.getCustomAuthor());
-            jsonObject.addProperty("authorImg", blog.getCustomAuthorImage());
-        } else {
-            jsonObject.addProperty("author", "Deleted User");
-            jsonObject.addProperty("authorImg", User.DEFAULT_PROFILE);
-        }
-         */
         jsonObject.addProperty("author", blog.getAuthorName(userRepository));
         jsonObject.addProperty("authorImg", blog.getAuthorImage(userRepository));
         jsonObject.addProperty("safeName", blog.getURLSafeTitle());
+        List<String> tagIDs = blog.getTags();
+        List<Tag> tags = new ArrayList<>();
+        if (tagIDs != null) {
+            for (String tagID : tagIDs) {
+                Optional<Tag> optionalTag = tagsRepository.findById(tagID);
+                optionalTag.ifPresent(tags::add);
+            }
+        }
+        jsonObject.add("tags", gson.toJsonTree(tags));
         jsonObject.remove("cached");
         return jsonObject;
     }
-
 }

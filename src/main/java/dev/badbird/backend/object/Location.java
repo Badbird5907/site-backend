@@ -31,6 +31,7 @@ public class Location {
         return location;
     }
 
+
     public String getContents() {
         if (contents != null) return contents;
         if (directURL != null) {
