@@ -116,8 +116,11 @@ public class AuthController {
 
 
     @PostMapping("/changepwd")
-    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<?> changePwd(@RequestBody @Valid ChangePasswordRequest request) {
+        UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (userDetails == null) {
+            return ResponseEntity.status(401).body("{\"success\": false, \"message\": \"Not logged in\"}");
+        }
         String oldPassword = request.getOldPassword(), newPassword = request.getNewPassword();
 
         if (oldPassword.isEmpty()) {
