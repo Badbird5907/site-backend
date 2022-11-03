@@ -117,7 +117,13 @@ public class AuthController {
 
     @PostMapping("/changepwd")
     public ResponseEntity<?> changePwd(@RequestBody @Valid ChangePasswordRequest request) {
-        UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        /*
+        Servlet.service() for servlet [dispatcherServlet] in context with path [] threw exception [Request processing failed; nested exception is java.lang.ClassCastException: class java.lang.String cannot be cast to class dev.badbird.backend.security.UserDetailsImpl (java.lang.String is in module java.base of loader 'bootstrap'; dev.badbird.backend.security.UserDetailsImpl is in unnamed module of loader org.springframework.boot.loader.LaunchedURLClassLoader @5e9f23b4)] with root cause
+Nov 03 00:29:47 instance-20220618-1820 run.sh[1252695]: java.lang.ClassCastException: class java.lang.String cannot be cast to class dev.badbird.backend.security.UserDetailsImpl (java.lang.String is in module java.base of loader 'bootstrap'; dev.badbird.backend.security.UserDetailsImpl is in unnamed module of loader org.springframework.boot.loader.LaunchedURLClassLoader @5e9f23b4)
+         */
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        System.out.println("Principal: " + principal);
+        UserDetailsImpl userDetails = (UserDetailsImpl) principal;
         if (userDetails == null) {
             return ResponseEntity.status(401).body("{\"success\": false, \"message\": \"Not logged in\"}");
         }
