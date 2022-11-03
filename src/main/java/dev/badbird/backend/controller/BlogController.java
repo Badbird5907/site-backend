@@ -46,9 +46,10 @@ public class BlogController {
     public ResponseEntity<?> getBlogInfo(@PathVariable("id") String idStr) {
         idStr = URLDecoder.decode(idStr, StandardCharsets.UTF_8.toString());
         Optional<Blog> optionalBlog = blogRepository.findById(idStr);
-        if (!optionalBlog.isPresent()) {
-            optionalBlog = blogRepository.findByTitle(idStr);
-            if (!optionalBlog.isPresent()) {
+        if (optionalBlog.isEmpty()) {
+            List<Blog> list = blogRepository.findByTitle(idStr);
+            optionalBlog = list.stream().findFirst();
+            if (optionalBlog.isEmpty()) {
                 return ResponseEntity.status(404)
                         .body(BLOG_NOT_FOUND);
             }
@@ -61,9 +62,10 @@ public class BlogController {
     public ResponseEntity<?> getBlogContent(@PathVariable("id") String idStr) {
         idStr = URLDecoder.decode(idStr, StandardCharsets.UTF_8.toString());
         Optional<Blog> optionalBlog = blogRepository.findById(idStr);
-        if (!optionalBlog.isPresent()) {
-            optionalBlog = blogRepository.findByTitle(idStr);
-            if (!optionalBlog.isPresent()) {
+        if (optionalBlog.isEmpty()) {
+            List<Blog> list = blogRepository.findByTitle(idStr);
+            optionalBlog = list.stream().findFirst();
+            if (optionalBlog.isEmpty()) {
                 return ResponseEntity.status(404)
                         .body(BLOG_NOT_FOUND);
             }
