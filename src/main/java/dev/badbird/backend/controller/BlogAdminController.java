@@ -65,7 +65,9 @@ public class BlogAdminController {
         }
         Blog blog = new Blog(request.title, request.description, location, author, userId);
         blog.setTags(request.tags);
-        blog.setTimestamp(System.currentTimeMillis());
+        long timestamp = request.timestamp;
+        if (timestamp <= 0) timestamp = System.currentTimeMillis();
+        blog.setTimestamp(timestamp);
         blogRepository.save(blog);
         return ResponseEntity.ok("{\"success\": true, \"id\": \"" + blog.getId() + "\", \"url\": \"" + blog.getURLSafeTitle() + "\"}");
     }
@@ -103,6 +105,9 @@ public class BlogAdminController {
         if (request.tags != null && !request.tags.isEmpty()) {
             blog.setTags(request.tags);
         }
+        long timestamp = request.timestamp;
+        if (timestamp <= 0) timestamp = System.currentTimeMillis();
+        blog.setTimestamp(timestamp);
         blogRepository.save(blog);
         return ResponseEntity.ok("{\"success\": true, \"id\": \"" + blog.getId() + "\", \"url\": \"" + blog.getURLSafeTitle() + "\"}");
     }
@@ -227,6 +232,7 @@ public class BlogAdminController {
         private String customAuthorImg;
 
         private String contents, directURL, githubURL;
+        private long timestamp = -1;
 
         private String id;
     }
