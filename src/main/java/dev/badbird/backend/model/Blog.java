@@ -69,7 +69,7 @@ public class Blog {
     }
 
     public boolean hasCustomAuthor() {
-        return author.hasCustomAuthor();
+        return author.isCustom();
     }
 
     public String getAuthorName(UserRepository userRepository) {

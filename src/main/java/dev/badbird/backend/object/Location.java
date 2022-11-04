@@ -1,5 +1,6 @@
 package dev.badbird.backend.object;
 
+import com.google.gson.JsonObject;
 import dev.badbird.backend.util.WebUtil;
 import lombok.Data;
 
@@ -41,5 +42,19 @@ public class Location {
             return githubReference.getFileContents();
         }
         return null;
+    }
+
+    public JsonObject getAsJsonObject() {
+        JsonObject object = new JsonObject();
+        if (contents != null && !contents.isEmpty()) {
+            object.addProperty("contents", contents);
+        }
+        if (githubReference != null) {
+            object.addProperty("githubURL", githubReference.getEffectiveURL(false));
+        }
+        if (directURL != null && !directURL.isEmpty()) {
+            object.addProperty("directURL", directURL);
+        }
+        return object;
     }
 }

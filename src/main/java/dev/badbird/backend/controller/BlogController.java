@@ -20,6 +20,8 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URLDecoder;
@@ -182,8 +184,6 @@ public class BlogController {
 
         return ResponseEntity.ok(gson.toJson(jsonObject));
     }
-
-
     public JsonObject getBlogMeta(Optional<Blog> optionalBlog) {
         return getBlogMeta(optionalBlog.get());
     }
@@ -197,6 +197,13 @@ public class BlogController {
         jsonObject.addProperty("success", true);
         jsonObject.addProperty("author", blog.getAuthorName(userRepository));
         jsonObject.addProperty("authorImg", blog.getAuthorImage(userRepository));
+
+        // check if user is logged in
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.isAuthenticated()) {
+            jsonObject.addProperty("customAuthor", blog.hasCustomAuthor());
+        }
+
         jsonObject.addProperty("safeName", blog.getURLSafeTitle());
         List<String> tagIDs = blog.getTags();
         List<Tag> tags = new ArrayList<>();

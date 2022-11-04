@@ -13,18 +13,22 @@ public class Author {
     private String authorId; // Author of the blog (UUID id)
     private String customAuthor = null, customAuthorImage = null; // Custom author name and image
 
-    public boolean hasCustomAuthor() {
+    public boolean isCustom() {
         return customAuthor != null && !customAuthor.isEmpty();
     }
 
     public String getAuthorName(UserRepository userRepository) {
-        if (hasCustomAuthor()) return customAuthor;
+        if (isCustom()) return customAuthor;
+        if (authorId == null) return "Unknown";
         Optional<User> user = userRepository.findById(authorId);
         if (user.isPresent()) return user.get().getUsername();
         return "Unknown";
     }
     public String getAuthorImage(UserRepository userRepository) {
         if (customAuthorImage != null && !customAuthorImage.isEmpty()) return customAuthorImage;
+        if (authorId == null) {
+            return User.DEFAULT_PROFILE;
+        }
         Optional<User> user = userRepository.findById(authorId);
         if (user.isPresent()) return user.get().getImageUrl();
         return User.DEFAULT_PROFILE;

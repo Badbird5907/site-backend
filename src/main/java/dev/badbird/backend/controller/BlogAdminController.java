@@ -28,7 +28,7 @@ import java.util.Optional;
 @RequestMapping("/blog")
 @RestController
 @CrossOrigin(origins = "*")
-@PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_USER')")
+//@PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_USER')")
 public class BlogAdminController {
     @Autowired
     private BlogRepository blogRepository;
@@ -64,10 +64,18 @@ public class BlogAdminController {
             author = Author.fromUser(userId);
         }
         Blog blog = new Blog(request.title, request.description, location, author, userId);
+        for (String tag : request.tags) {
+            if (tagsRepository.findById(tag).isEmpty()) {
+                return ResponseEntity.badRequest().body("{\"success\": false, \"error\": \"Invalid tag UUID provided\"}");
+            }
+        }
         blog.setTags(request.tags);
         long timestamp = request.timestamp;
         if (timestamp <= 0) timestamp = System.currentTimeMillis();
         blog.setTimestamp(timestamp);
+        if (request.imageURL != null && !request.imageURL.isEmpty()) {
+            blog.setImage(request.imageURL);
+        }
         blogRepository.save(blog);
         return ResponseEntity.ok("{\"success\": true, \"id\": \"" + blog.getId() + "\", \"url\": \"" + blog.getURLSafeTitle() + "\"}");
     }
@@ -100,10 +108,18 @@ public class BlogAdminController {
         if (request.customAuthor != null && !request.customAuthor.isEmpty()) {
             blog.setAuthor(Author.fromCustom(request.customAuthor, request.customAuthorImg));
         } else {
-            blog.setAuthor(Author.fromUser(blog.getAuthor().getAuthorId()));
+            blog.setAuthor(Author.fromUser(blog.getCreator()));
         }
-        if (request.tags != null && !request.tags.isEmpty()) {
+        if (request.tags != null) {
+            for (String tag : request.tags) {
+                if (tagsRepository.findById(tag).isEmpty()) {
+                    return ResponseEntity.badRequest().body("{\"success\": false, \"error\": \"Invalid tag UUID provided\"}");
+                }
+            }
             blog.setTags(request.tags);
+        }
+        if (request.imageURL != null && !request.imageURL.isEmpty()) {
+            blog.setImage(request.imageURL);
         }
         long timestamp = request.timestamp;
         if (timestamp <= 0) timestamp = System.currentTimeMillis();
@@ -128,95 +144,12 @@ public class BlogAdminController {
         return ResponseEntity.ok("{\"success\": true}");
     }
 
-    @GetMapping("/tags/get")
-    public ResponseEntity<String> getTags() {
-        JsonObject jsonObject = new JsonObject();
-        List<Tag> tags = tagsRepository.findAll();
-        jsonObject.add("tags", gson.toJsonTree(tags));
-        jsonObject.addProperty("success", true);
-        return ResponseEntity.ok(gson.toJson(jsonObject));
-    }
-
-    @PostMapping("/tags/add")
-    public ResponseEntity<String> addTag(@RequestBody @Valid CreateTagRequest data) {
-        if (tagsRepository.findByName(data.name).isPresent()) {
-            return ResponseEntity.ok("{\"success\": false, \"error\": \"Tag already exists\"}");
-        }
-        ETagIcon icon = ETagIcon.NONE;
-        try {
-            if (data.icon != null && !data.icon.isEmpty()) {
-                icon = ETagIcon.valueOf(data.icon);
-            }
-        } catch (IllegalArgumentException ignored) {
-        }
-        Tag tag = new Tag(data.name, data.description, icon);
-        tagsRepository.save(tag);
-        return ResponseEntity.ok("{\"success\": true, \"id\": \"" + tag.getId() + "\", \"name\": \"" + tag.getName() + "\", \"description\": \"" + tag.getDescription() + "\", \"icon\": \"" + tag.getIcon().name() + "\"}");
-    }
-
-    @PostMapping("/tags/edit")
-    public ResponseEntity<String> editTag(@RequestBody @Valid EditTagRequest data) {
-        Optional<Tag> optionalTag = tagsRepository.findById(data.id);
-        if (optionalTag.isEmpty()) {
-            return ResponseEntity.ok("{\"success\": false, \"error\": \"Tag does not exist\"}");
-        }
-        Tag tag = optionalTag.get();
-        tag.setName(data.name);
-        tag.setDescription(data.description);
-        ETagIcon icon = ETagIcon.NONE;
-        try {
-            if (data.icon != null && !data.icon.isEmpty()) {
-                icon = ETagIcon.valueOf(data.icon);
-            }
-        } catch (IllegalArgumentException ignored) {
-        }
-        tag.setIcon(icon);
-        tagsRepository.save(tag);
-        return ResponseEntity.ok("{\"success\": true, \"id\": \"" + tag.getId() + "\", \"name\": \"" + tag.getName() + "\", \"description\": \"" + tag.getDescription() + "\", \"icon\": \"" + tag.getIcon().name() + "\"}");
-    }
-
-    @PostMapping("/tags/delete")
-    public ResponseEntity<String> deleteTag(@RequestBody @Valid DeleteTagRequest data) {
-        Optional<Tag> optionalTag = tagsRepository.findById(data.id);
-        if (optionalTag.isEmpty()) {
-            return ResponseEntity.ok("{\"success\": false, \"error\": \"Tag does not exist\"}");
-        }
-        Tag tag = optionalTag.get();
-        tagsRepository.delete(tag);
-        return ResponseEntity.ok("{\"success\": true}");
-    }
-
     @AllArgsConstructor
     @NoArgsConstructor
     @Data
     public static class DeleteTagRequest {
         @NotBlank
         public String id;
-    }
-
-    @AllArgsConstructor
-    @NoArgsConstructor
-    @Data
-    public static class EditTagRequest {
-        @NotBlank
-        public String id;
-        @NotBlank
-        public String name;
-        @NotBlank
-        public String description;
-        public String icon;
-    }
-
-    @AllArgsConstructor
-    @NoArgsConstructor
-    @Data
-    public static class CreateTagRequest {
-        @NotBlank
-        private String name;
-        @NotBlank
-        private String description;
-        @NotBlank
-        private String icon;
     }
 
     @AllArgsConstructor
@@ -232,6 +165,7 @@ public class BlogAdminController {
         private String customAuthorImg;
 
         private String contents, directURL, githubURL;
+        private String imageURL;
         private long timestamp = -1;
 
         private String id;
