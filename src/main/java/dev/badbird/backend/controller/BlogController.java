@@ -18,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.MongoRegexCreator;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -121,18 +122,19 @@ public class BlogController {
         List<Blog> blogs;
         Query query = new Query();
         MongoTemplate mongoTemplate = new MongoTemplate(mongoClient, databaseName);
-        if (!search.isEmpty()) {
-            String str = String.format(CONTAINS_PATTERN, Utils.escapeRegex(search));
-            // either title or description contains the search string
-            query.addCriteria(Criteria.where("title").regex(str, "i") // TODO not the best solution using regex
-                    .orOperator(Criteria.where("description").regex(str, "i")));
-        }
+        addSearchQuery(search, query);
         if (!tags.isEmpty()) {
             String[] tagsArray = tags.split(",");
             List<String> tagsList = new ArrayList<>(); // a list of tag ids
             for (String tag : tagsArray) {
                 tag = URLDecoder.decode(tag, StandardCharsets.UTF_8);
                 Optional<Tag> optionalTag = tagsRepository.findByName(tag);
+                if (optionalTag.isEmpty()) {
+                    optionalTag = tagsRepository.findById(tag);
+                    if (optionalTag.isEmpty()) {
+                        return ResponseEntity.badRequest().body("{\"success\": false, \"error\": \"Invalid tag: " + tag + "\"}");
+                    }
+                }
                 optionalTag.ifPresent(t -> tagsList.add(t.getId()));
             }
             query.addCriteria(Criteria.where("tags").all(tagsList));
@@ -152,12 +154,7 @@ public class BlogController {
             blogList.add(getBlogMeta(Optional.of(blog)));
         }
         Query countQuery = new Query();
-        if (!search.isEmpty()) {
-            String str = String.format(CONTAINS_PATTERN, Utils.escapeRegex(search));
-            // either title or description contains the search string
-            countQuery.addCriteria(Criteria.where("title").regex(str, "i") // TODO down here too
-                    .orOperator(Criteria.where("description").regex(str, "i")));
-        }
+        addSearchQuery(search, countQuery);
         if (!tags.isEmpty()) {
             String[] tagsArray = tags.split(",");
             List<String> tagsList = new ArrayList<>(); // a list of tag ids
@@ -184,6 +181,20 @@ public class BlogController {
 
         return ResponseEntity.ok(gson.toJson(jsonObject));
     }
+
+    private void addSearchQuery(String search, Query query) {
+        search = Utils.escapeRegex(search);
+        if (!search.isEmpty()) {
+            String str = MongoRegexCreator.INSTANCE.toRegularExpression(search, MongoRegexCreator.MatchMode.CONTAINING);
+            if (str == null) {
+                System.err.println("Error creating regex for search string: " + search);
+                str = String.format(CONTAINS_PATTERN, Utils.escapeRegex(search));
+            }
+            query.addCriteria(Criteria.where("title").regex(str, "i")
+                    .orOperator(Criteria.where("description").regex(str, "i")));
+        }
+    }
+
     public JsonObject getBlogMeta(Optional<Blog> optionalBlog) {
         return getBlogMeta(optionalBlog.get());
     }

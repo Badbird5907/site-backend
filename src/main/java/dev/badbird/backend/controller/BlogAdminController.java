@@ -64,12 +64,14 @@ public class BlogAdminController {
             author = Author.fromUser(userId);
         }
         Blog blog = new Blog(request.title, request.description, location, author, userId);
-        for (String tag : request.tags) {
-            if (tagsRepository.findById(tag).isEmpty()) {
-                return ResponseEntity.badRequest().body("{\"success\": false, \"error\": \"Invalid tag UUID provided\"}");
+        if (request.tags != null && !request.tags.isEmpty()) {
+            for (String tag : request.tags) {
+                if (tagsRepository.findById(tag).isEmpty()) {
+                    return ResponseEntity.badRequest().body("{\"success\": false, \"error\": \"Invalid tag UUID provided\"}");
+                }
             }
+            blog.setTags(request.tags);
         }
-        blog.setTags(request.tags);
         long timestamp = request.timestamp;
         if (timestamp <= 0) timestamp = System.currentTimeMillis();
         blog.setTimestamp(timestamp);
@@ -110,7 +112,7 @@ public class BlogAdminController {
         } else {
             blog.setAuthor(Author.fromUser(blog.getCreator()));
         }
-        if (request.tags != null) {
+        if (request.tags != null) { // Not checking empty because it's possible to remove all tags
             for (String tag : request.tags) {
                 if (tagsRepository.findById(tag).isEmpty()) {
                     return ResponseEntity.badRequest().body("{\"success\": false, \"error\": \"Invalid tag UUID provided\"}");
