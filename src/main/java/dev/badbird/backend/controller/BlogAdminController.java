@@ -28,7 +28,7 @@ import java.util.Optional;
 @RequestMapping("/blog")
 @RestController
 @CrossOrigin(origins = "*")
-//@PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_USER')")
+@PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_USER')")
 public class BlogAdminController {
     @Autowired
     private BlogRepository blogRepository;
@@ -56,7 +56,9 @@ public class BlogAdminController {
         if (blogRepository.existsByTitle(request.title)) {
             return ResponseEntity.badRequest().body("{\"success\": false, \"error\": \"Title already exists\"}");
         }
-        String userId = ((UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        System.out.println("Principal: " + principal);
+        String userId = ((UserDetailsImpl) principal).getId();
         Author author;
         if (request.customAuthor != null && !request.customAuthor.isEmpty()) {
             author = Author.fromCustom(request.customAuthor, request.customAuthorImg);
