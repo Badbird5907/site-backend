@@ -79,7 +79,7 @@ public class AuthController {
             authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
         } catch (AuthenticationException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
             return ResponseEntity.status(401).body("{\"success\": false, \"message\": \"Invalid username or password\"}");
         }
 
@@ -101,7 +101,7 @@ public class AuthController {
 
     @PostMapping("/check")
     public ResponseEntity<?> check(@Valid @RequestBody TokenCheckRequest request) {
-        System.out.println("Request: " + request + " | Token: " + request.getToken());
+        //System.out.println("Request: " + request + " | Token: " + request.getToken());
         JsonObject response = new JsonObject();
         response.addProperty("success", jwtUtils.validateJwtToken(request.getToken()));
         if (response.get("success").getAsBoolean()) {
