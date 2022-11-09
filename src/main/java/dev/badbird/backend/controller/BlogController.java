@@ -70,8 +70,8 @@ public class BlogController {
                         .body(BLOG_NOT_FOUND);
             }
         }
+        JsonObject data = getBlogMeta(optionalBlog);
         try {
-            JsonObject data = getBlogMeta(optionalBlog);
             data.addProperty("content", optionalBlog.get().getContent());
             return ResponseEntity.ok(gson.toJson(data));
         } catch (Exception e) {
@@ -80,8 +80,18 @@ public class BlogController {
             e.printStackTrace();
             if (location.getGithubReference() != null) {
                 githubURL = location.getGithubReference().getEffectiveURL(false);
+                JsonObject returnData = new JsonObject();
+                returnData.addProperty("success", false);
+                //return ResponseEntity.status(500)
+                //        .body("{\"success\": false, \"error\": \"Error getting blog content\", \"code\": 500, \"githubURL\": \"" + githubURL + "\"}");
+                returnData.addProperty("error", "Error getting blog content");
+                returnData.addProperty("code", 500);
+                returnData.addProperty("githubURL", githubURL);
+                if (data != null) {
+                    returnData.add("data", data);
+                }
                 return ResponseEntity.status(500)
-                        .body("{\"success\": false, \"error\": \"Error getting blog content\", \"code\": 500, \"githubURL\": \"" + githubURL + "\"}");
+                        .body(gson.toJson(returnData));
             }
             return ResponseEntity.status(500)
                     .body("{\"success\": false, \"error\": \"Internal server error\", \"code\": 500}");
@@ -226,6 +236,7 @@ public class BlogController {
         }
         jsonObject.add("tags", gson.toJsonTree(tags));
         jsonObject.remove("cached");
+        jsonObject.addProperty("id", blog.getId());
         return jsonObject;
     }
 }
