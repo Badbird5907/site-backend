@@ -127,7 +127,7 @@ public class BlogController {
         if (!realOrder.equals("asc") && !realOrder.equals("desc")) {
             return ResponseEntity.badRequest().body("{\"success\": false, \"error\": \"Invalid order, valid: asc and desc\"}");
         }
-        Sort.Direction direction = realOrder.equals("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Sort.Direction direction = realOrder.equals("asc") ? Sort.Direction.DESC : Sort.Direction.ASC; // Kinda weird but we're sorting by timestamp here.
         Pageable p = PageRequest.of(page - 1, size, Sort.by(direction, "timestamp")); // Hardcoded timestamp for now because it's the only valid option, change later
         List<Blog> blogs;
         Query query = new Query();
