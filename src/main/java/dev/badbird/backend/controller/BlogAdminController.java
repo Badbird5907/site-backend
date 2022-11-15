@@ -1,10 +1,7 @@
 package dev.badbird.backend.controller;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import dev.badbird.backend.model.Blog;
-import dev.badbird.backend.model.ETagIcon;
-import dev.badbird.backend.model.Tag;
 import dev.badbird.backend.object.Author;
 import dev.badbird.backend.object.GithubReference;
 import dev.badbird.backend.object.Location;
@@ -78,7 +75,7 @@ public class BlogAdminController {
         if (timestamp <= 0) timestamp = System.currentTimeMillis();
         blog.setTimestamp(timestamp);
         if (request.imageURL != null && !request.imageURL.isEmpty()) {
-            blog.setImage(request.imageURL);
+            blog.setImageURL(request.imageURL);
         }
         blogRepository.save(blog);
         return ResponseEntity.ok("{\"success\": true, \"id\": \"" + blog.getId() + "\", \"url\": \"" + blog.getURLSafeTitle() + "\"}");
@@ -123,7 +120,7 @@ public class BlogAdminController {
             blog.setTags(request.tags);
         }
         if (request.imageURL != null && !request.imageURL.isEmpty()) {
-            blog.setImage(request.imageURL);
+            blog.setImageURL(request.imageURL);
         }
         long timestamp = request.timestamp;
         if (timestamp <= 0) timestamp = System.currentTimeMillis();

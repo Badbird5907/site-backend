@@ -26,7 +26,7 @@ public class Blog {
     private String title; // Display title on list
     private String description; // Description of the blog
     private long timestamp; // Date of the blog
-    private String image; // Image URL of the blog
+    private String imageURL; // Image URL of the blog
     private List<String> tags; // Tags of the blog (UUID ids)
     private String creator; // Creator of the blog (UUID id)
     private Author author;
