@@ -1,5 +1,6 @@
 package dev.badbird.backend.model;
 
+import com.google.common.net.UrlEscapers;
 import dev.badbird.backend.object.Author;
 import dev.badbird.backend.object.Location;
 import dev.badbird.backend.repositories.UserRepository;
@@ -61,7 +62,8 @@ public class Blog {
 
     @SneakyThrows
     public String getURLSafeTitle() {
-        return URLEncoder.encode(title, StandardCharsets.UTF_8);
+        //return URLEncoder.encode(title, StandardCharsets.UTF_8); // TODO maybe make the URL more human readable, like replacing spaces with dashes
+        return UrlEscapers.urlFragmentEscaper().escape(title); // We're using google guava to escape the URL because URLEncoder uses + instead of %20 for spaces (https://stackoverflow.com/questions/4737841/urlencoder-not-able-to-translate-space-character)
     }
 
     public void setTitle(String title) {
