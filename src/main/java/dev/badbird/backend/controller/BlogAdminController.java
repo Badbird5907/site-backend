@@ -1,6 +1,7 @@
 package dev.badbird.backend.controller;
 
 import com.google.gson.Gson;
+import dev.badbird.backend.components.FrontendManager;
 import dev.badbird.backend.model.Blog;
 import dev.badbird.backend.object.Author;
 import dev.badbird.backend.object.GithubReference;
@@ -31,6 +32,8 @@ public class BlogAdminController {
     private BlogRepository blogRepository;
     @Autowired
     private TagsRepository tagsRepository;
+    @Autowired
+    private FrontendManager frontendManager;
     @Autowired
     private Gson gson;
 
@@ -78,6 +81,7 @@ public class BlogAdminController {
             blog.setImageURL(request.imageURL);
         }
         blogRepository.save(blog);
+        frontendManager.revalidateFrontend("blog");
         return ResponseEntity.ok("{\"success\": true, \"id\": \"" + blog.getId() + "\", \"url\": \"" + blog.getURLSafeTitle() + "\"}");
     }
 
@@ -126,6 +130,7 @@ public class BlogAdminController {
         if (timestamp <= 0) timestamp = System.currentTimeMillis();
         blog.setTimestamp(timestamp);
         blogRepository.save(blog);
+        frontendManager.revalidateFrontend("blog");
         return ResponseEntity.ok("{\"success\": true, \"id\": \"" + blog.getId() + "\", \"url\": \"" + blog.getURLSafeTitle() + "\"}");
     }
 
@@ -142,6 +147,7 @@ public class BlogAdminController {
             return ResponseEntity.badRequest().body("{\"success\": false, \"message\": \"You do not have permission to delete this blog\"}");
         }
         blogRepository.delete(blog);
+        frontendManager.revalidateFrontend("blog");
         return ResponseEntity.ok("{\"success\": true}");
     }
 
